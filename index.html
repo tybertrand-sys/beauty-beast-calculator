@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="Private Beauty & Beast Wellness dosage and vial calculator." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icons/icon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Beauty & Beast Wellness</title>
+</head>
+<body>
+  <div id="splash" class="splash">
+    <img src="assets/icons/icon.svg" alt="" />
+    <h1>Beauty & Beast Wellness</h1>
+    <p>Private Calculator</p>
+  </div>
+
+  <header class="app-header">
+    <div class="brand">
+      <img src="assets/icons/icon.svg" alt="" />
+      <div>
+        <h1>Beauty & Beast Wellness</h1>
+        <p>Dosage Calculator · Private Version 2.1 <span id="connectionBadge" class="connection-badge">Online</span></p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="themeBtn" class="icon-btn" aria-label="Toggle theme">◐</button>
+      <button id="exportBtn" class="icon-btn" aria-label="Export data">⇩</button>
+      <label class="icon-btn file-label" aria-label="Import data">⇧<input id="importInput" type="file" accept="application/json" /></label>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Main navigation">
+    <button class="tab active" data-view="home">Home</button>
+    <button class="tab" data-view="calculate">Calculate</button>
+    <button class="tab" data-view="protocols">My Protocols</button>
+    <button class="tab" data-view="vials">My Vials</button>
+    <button class="tab" data-view="library">Library</button>
+    <button class="tab" data-view="reminders">Alerts</button>
+    <button class="tab" data-view="activity">Activity</button>
+    <button class="tab" data-view="history">History</button>
+    <button class="tab" data-view="settings">Settings</button>
+  </nav>
+
+  <div id="errorBanner" class="error-banner hidden" role="alert"></div>
+
+  <main>
+    <section id="home" class="view active">
+      <div class="dashboard-top">
+        <div>
+          <span class="eyebrow">PRIVATE DAILY DASHBOARD</span>
+          <h2 id="dashboardGreeting">Beauty & Beast Wellness</h2>
+          <p id="dashboardSummary" class="muted">Your current protocols, alerts, inventory, and recent calculations.</p>
+        </div>
+        <div class="profile-switch compact">
+          <button class="profile-btn active" data-profile="Beast">Beast</button>
+          <button class="profile-btn" data-profile="Beauty">Beauty</button>
+        </div>
+      </div>
+
+      <div class="grid four dashboard-stats">
+        <article class="card stat"><strong id="todayReminderCount">0</strong><span>Due today</span></article>
+        <article class="card stat"><strong id="activeProtocolCount">0</strong><span>Active protocols</span></article>
+        <article class="card stat"><strong id="lowVialCount">0</strong><span>Low vials</span></article>
+        <article class="card stat"><strong id="savedCount">0</strong><span>Saved calculations</span></article>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="card dashboard-panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow">TODAY</span><h3>Reminders</h3></div>
+            <button class="text-btn" data-jump="reminders">View all</button>
+          </div>
+          <div id="dashboardReminders" class="mini-stack"></div>
+        </section>
+
+        <section class="card dashboard-panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow">CURRENT</span><h3>Protocol steps</h3></div>
+            <button class="text-btn" data-jump="protocols">View protocols</button>
+          </div>
+          <div id="dashboardProtocols" class="mini-stack"></div>
+        </section>
+
+        <section class="card dashboard-panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow">INVENTORY</span><h3>Vial status</h3></div>
+            <button class="text-btn" data-jump="vials">Manage</button>
+          </div>
+          <div id="dashboardVials" class="mini-stack"></div>
+        </section>
+
+        <section class="card dashboard-panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow">RECENT</span><h3>Calculations</h3></div>
+            <button class="text-btn" data-jump="history">View history</button>
+          </div>
+          <div id="dashboardHistory" class="mini-stack"></div>
+        </section>
+      </div>
+
+      <div class="quick-actions card">
+        <span class="eyebrow">QUICK ACTIONS</span>
+        <div class="quick-grid">
+          <button class="quick-card" data-jump="calculate"><strong>Calculate</strong><span>Dose, blend, and conversion tools</span></button>
+          <button class="quick-card" data-jump="protocols"><strong>My Protocols</strong><span>Load a saved phase in one tap</span></button>
+          <button class="quick-card" data-jump="vials"><strong>My Vials</strong><span>Track supply and remaining doses</span></button>
+          <button class="quick-card" data-jump="reminders"><strong>Alerts</strong><span>Create and review reminders</span></button>
+        </div>
+      </div>
+
+      <div class="card notice">
+        <strong>Important</strong>
+        <p>This app performs math from values you enter and stores your personal records. It does not select a dose, diagnose, prescribe, or replace instructions from a licensed clinician or pharmacist.</p>
+      </div>
+    </section>
+
+    <section id="calculate" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">SMART CALCULATOR</span><h2>Calculate</h2></div>
+        <select id="calcMode" aria-label="Calculation mode">
+          <option value="dose">Dose → syringe units</option>
+          <option value="reconstitution">Reconstitution concentration</option>
+          <option value="blend">Blend component math</option>
+          <option value="convert">Unit converter</option>
+        </select>
+      </div>
+
+      <div id="dosePanel" class="calc-panel card">
+        <h3>Dose → Syringe Units</h3>
+        <div class="form-grid">
+          <label>Vial amount (mg)<input id="doseVialMg" type="number" min="0" step="any" placeholder="10" /></label>
+          <label>Liquid added (mL)<input id="doseMl" type="number" min="0" step="any" placeholder="2" /></label>
+          <label>Desired dose<input id="doseDesired" type="number" min="0" step="any" placeholder="0.5" /></label>
+          <label>Dose unit<select id="doseUnit"><option value="mg">mg</option><option value="mcg">mcg</option></select></label>
+          <label>Syringe size<select id="syringeSize"><option value="100">U-100 (100 units = 1 mL)</option><option value="50">U-50 (50 units = 1 mL)</option><option value="40">U-40 (40 units = 1 mL)</option></select></label>
+          <label>Label<input id="doseLabel" type="text" placeholder="Optional name" /></label>
+        </div>
+        <div class="result-box">
+          <span>Draw to</span><strong id="doseResult">—</strong><span id="doseSub">Enter your vial and dose information.</span>
+        </div>
+        <details><summary>Show My Math</summary><pre id="doseMath">No calculation yet.</pre></details>
+        <div id="doseWarning" class="inline-warning hidden"></div>
+        <div class="item-actions"><button id="copyDose" class="secondary">Copy result</button><button id="recordCalculatedDose" class="record-btn">Record dose</button><button id="saveDose" class="primary">Save calculation</button></div>
+      </div>
+
+      <div id="reconstitutionPanel" class="calc-panel card hidden">
+        <h3>Reconstitution Concentration</h3>
+        <div class="form-grid">
+          <label>Vial amount (mg)<input id="recVialMg" type="number" min="0" step="any" placeholder="10" /></label>
+          <label>Liquid added (mL)<input id="recMl" type="number" min="0" step="any" placeholder="2" /></label>
+        </div>
+        <div class="result-box">
+          <span>Concentration</span><strong id="recResult">—</strong><span id="recSub">mg per mL and mcg per syringe unit</span>
+        </div>
+        <details><summary>Show My Math</summary><pre id="recMath">No calculation yet.</pre></details>
+      </div>
+
+      <div id="blendPanel" class="calc-panel card hidden">
+        <h3>Blend Component Math</h3>
+        <p class="muted">Enter each component amount in the vial, the total liquid added, and the volume you plan to draw.</p>
+        <div id="blendRows"></div>
+        <button id="addBlendRow" class="secondary">+ Add component</button>
+        <div class="form-grid top-space">
+          <label>Total liquid added (mL)<input id="blendMl" type="number" min="0" step="any" placeholder="3" /></label>
+          <label>Volume drawn (syringe units)<input id="blendUnits" type="number" min="0" step="any" placeholder="10" /></label>
+          <label>Syringe size<select id="blendSyringe"><option value="100">U-100</option><option value="50">U-50</option><option value="40">U-40</option></select></label>
+        </div>
+        <div id="blendResults" class="result-list"></div>
+        <details><summary>Show My Math</summary><pre id="blendMath">No calculation yet.</pre></details>
+      </div>
+
+      <div id="convertPanel" class="calc-panel card hidden">
+        <h3>Unit Converter</h3>
+        <div class="form-grid">
+          <label>Value<input id="convertValue" type="number" step="any" placeholder="1" /></label>
+          <label>From<select id="convertFrom"><option value="mg">mg</option><option value="mcg">mcg</option><option value="g">g</option><option value="ml">mL</option><option value="ul">µL</option></select></label>
+          <label>To<select id="convertTo"><option value="mcg">mcg</option><option value="mg">mg</option><option value="g">g</option><option value="ul">µL</option><option value="ml">mL</option></select></label>
+        </div>
+        <div class="result-box"><span>Converted value</span><strong id="convertResult">—</strong></div>
+      </div>
+    </section>
+
+    <section id="protocols" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">PRIVATE & EDITABLE</span><h2>My Protocols</h2></div>
+        <div class="heading-actions"><button id="exportProtocols" class="secondary">Export protocols</button><label class="secondary file-button">Import protocols<input id="importProtocols" type="file" accept="application/json" /></label><button id="printProtocols" class="secondary">Print summary</button><button id="protocolReminderBuilder" class="secondary">Create reminder</button><button id="buildProtocolSchedule" class="secondary">Build schedule</button><button id="addProtocol" class="primary">+ New protocol</button></div>
+      </div>
+
+      <div class="profile-switch card">
+        <button class="profile-btn active" data-profile="Beast">Beast</button>
+        <button class="profile-btn" data-profile="Beauty">Beauty</button>
+      </div>
+
+      <div class="card notice">
+        <strong>Personal records</strong>
+        <p>The preloaded entries below mirror the protocol sheets you supplied. They are editable records, not medical recommendations.</p>
+      </div>
+
+      <div id="protocolList" class="stack"></div>
+    </section>
+
+    <section id="vials" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">SHARED INVENTORY</span><h2>My Vials</h2></div>
+        <button id="addVial" class="primary">+ Add vial</button>
+      </div>
+      <div id="vialList" class="stack"></div>
+    </section>
+
+    <section id="library" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">REFERENCE NAMES</span><h2>Library</h2></div>
+        <input id="librarySearch" type="search" placeholder="Search library" />
+      </div>
+      <div id="libraryList" class="grid two"></div>
+    </section>
+
+
+    <section id="reminders" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">LOCAL ALERTS</span><h2>Alerts & Reminders</h2></div>
+        <div class="heading-actions">
+          <select id="reminderStatusFilter">
+            <option value="active">Active</option>
+            <option value="due">Due / overdue</option>
+            <option value="completed">Completed</option>
+            <option value="all">All</option>
+          </select>
+          <button id="enableNotifications" class="primary">Enable notifications</button>
+        </div>
+      </div>
+      <div class="grid three reminder-stats">
+        <article class="card stat"><strong id="activeReminderCount">0</strong><span>Active</span></article>
+        <article class="card stat"><strong id="dueReminderCount">0</strong><span>Due / overdue</span></article>
+        <article class="card stat"><strong id="completedReminderCount">0</strong><span>Completed</span></article>
+      </div>
+      <div class="card notice">
+        <strong>How alerts work</strong>
+        <p>The app stores reminders locally and checks them whenever the app is open. Browser notifications can appear while the app is active. Android may limit fully background-scheduled notifications until the PWA is later wrapped as an APK.</p>
+      </div>
+      <div class="card">
+        <h3 id="reminderFormTitle">Create reminder</h3><input id="reminderId" type="hidden" />
+        <div class="form-grid">
+          <label>Profile<select id="reminderProfile"><option>Beast</option><option>Beauty</option></select></label>
+          <label>Title<input id="reminderTitle" placeholder="Example: Retatrutide" /></label>
+          <label>Date<input id="reminderDate" type="date" /></label>
+          <label>Time<input id="reminderTime" type="time" /></label>
+          <label>Repeat<select id="reminderRepeat"><option value="none">One time</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="mwf">Monday / Wednesday / Friday</option></select></label>
+          <label>Notes<input id="reminderNotes" placeholder="Optional note" /></label>
+        </div>
+        <div class="item-actions top-space"><button id="cancelReminderEdit" class="secondary hidden">Cancel edit</button><button id="saveReminder" class="primary">Save reminder</button></div>
+      </div>
+      <div id="reminderList" class="stack top-space"></div>
+    </section>
+
+
+    <section id="activity" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">PRIVATE LOG</span><h2>Activity</h2></div>
+        <div class="heading-actions"><button id="exportActivityCsv" class="secondary">Export CSV</button><select id="activityProfileFilter"><option value="all">All profiles</option><option value="Beast">Beast</option><option value="Beauty">Beauty</option></select><button id="undoLastDose" class="secondary">Undo last dose</button><button id="clearActivity" class="danger">Clear activity</button></div>
+      </div>
+      <div class="grid three activity-stats">
+        <article class="card stat"><strong id="activityTotalCount">0</strong><span>Total recorded doses</span></article>
+        <article class="card stat"><strong id="activityThisWeekCount">0</strong><span>This week</span></article>
+        <article class="card stat"><strong id="activityProfileCount">0</strong><span>For selected profile</span></article>
+      </div>
+      <div class="card notice">
+        <strong>Recorded use</strong>
+        <p>Use the “Record dose” button on a protocol card to create an entry and automatically reduce a matching tracked vial.</p>
+      </div>
+      <div id="activityList" class="stack"></div>
+    </section>
+
+    <section id="settings" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">APP CONTROL</span><h2>Settings</h2></div>
+      </div>
+
+      <div class="settings-grid">
+        <article class="card">
+          <h3>Install the app</h3>
+          <p class="muted">Install Beauty & Beast Wellness on your Home screen so it opens full-screen like a normal app.</p>
+          <button id="installAppBtn" class="primary">Install app</button>
+          <p id="installStatus" class="muted small-text"></p>
+        </article>
+
+        <article class="card">
+          <h3>Appearance</h3>
+          <p class="muted">Choose the look used on this device.</p>
+          <label>Theme
+            <select id="settingsTheme">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </label>
+        </article>
+
+        <article class="card">
+          <h3>Backup and restore</h3>
+          <p class="muted">Export a private backup before replacing or resetting the app.</p>
+          <div class="item-actions">
+            <button id="settingsExport" class="secondary">Export backup</button>
+            <label class="secondary file-button">Import backup<input id="settingsImport" type="file" accept="application/json" /></label>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Data and privacy</h3>
+          <p class="muted">Your records stay in this browser unless you export them.</p>
+          <div class="item-actions"><button id="restoreFactoryProtocols" class="secondary">Restore original protocols</button><button id="resetApp" class="danger">Reset all app data</button></div>
+        </article>
+      </div>
+
+      
+        
+        
+        <article class="card">
+          <h3>Release status</h3>
+          <p class="muted">Run the final readiness check before publishing or installing this build.</p>
+          <button id="runReleaseCheck" class="primary">Run release check</button>
+          <div id="releaseCheckResults" class="mini-stack top-space"></div>
+        </article>
+
+        <article class="card">
+          <h3>Safety snapshot</h3>
+          <p class="muted">The app creates a local safety snapshot before imports, resets, and protocol restoration.</p>
+          <div class="item-actions">
+            <button id="createSafetySnapshot" class="secondary">Create snapshot</button>
+            <button id="restoreSafetySnapshot" class="secondary">Restore last snapshot</button>
+          </div>
+          <p id="snapshotStatus" class="muted small-text"></p>
+        </article>
+
+        <article class="card">
+          <h3>Storage status</h3>
+          <p class="muted">Check how much browser storage this app is using on this device.</p>
+          <button id="checkStorage" class="secondary">Check storage</button>
+          <div id="storageResults" class="mini-stack top-space"></div>
+        </article>
+
+        <article class="card">
+          <h3>App test</h3>
+          <p class="muted">Run a quick self-test of calculations, saved data, and required app elements.</p>
+          <button id="runSelfTest" class="secondary">Run self-test</button>
+          <div id="selfTestResults" class="mini-stack top-space"></div>
+        </article>
+
+        <article class="card">
+          <h3>Data check</h3>
+          <p class="muted">Review the app for missing protocol values, invalid vial amounts, and reminders without dates.</p>
+          <button id="runDataCheck" class="secondary">Run data check</button>
+          <div id="dataCheckResults" class="mini-stack top-space"></div>
+        </article>
+
+      <article class="card app-info-card"><h3>App information</h3><p><strong>Version:</strong> 2.1</p><p><strong>Storage:</strong> Local to this browser/device</p><p><strong>Data schema:</strong> 2</p><p><strong>Offline:</strong> Supported after first successful load</p></article>
+
+      <div class="card notice">
+        <strong>Face unlock</strong>
+        <p>The installed PWA uses your tablet’s normal lock screen. Because you already enabled Samsung Face Unlock, waking and unlocking the tablet with your face protects access to the app. A separate in-app biometric prompt requires later Android APK packaging.</p>
+      </div>
+    </section>
+
+    <section id="history" class="view">
+      <div class="section-heading">
+        <div><span class="eyebrow">LOCAL DEVICE STORAGE</span><h2>History</h2></div>
+        <div class="heading-actions"><button id="exportHistoryCsv" class="secondary">Export CSV</button><input id="historySearch" type="search" placeholder="Search history" /><button id="clearHistory" class="danger">Clear history</button></div>
+      </div>
+      <div id="historyList" class="stack"></div>
+    </section>
+  </main>
+
+  <dialog id="protocolDialog">
+    <form method="dialog" id="protocolForm">
+      <h3>Personal Protocol</h3>
+      <input type="hidden" id="protocolId" />
+      <label>Profile<select id="protocolProfile"><option>Beast</option><option>Beauty</option></select></label>
+      <label>Name<input id="protocolName" required placeholder="Example: Personal schedule" /></label>
+      <label>Item<input id="protocolItem" required placeholder="Select or type a name" list="libraryNames" /></label>
+      <label>Vial amount (mg)<input id="protocolVialMg" type="number" min="0" step="any" placeholder="Optional" /></label>
+      <label>Liquid added (mL)<input id="protocolLiquidMl" type="number" min="0" step="any" placeholder="Optional" /></label>
+      <label>Step label<input id="protocolStepLabel" placeholder="Example: Week 1" /></label>
+      <label>Target dose<input id="protocolDose" type="number" min="0" step="any" placeholder="Optional" /></label>
+      <label>Dose unit<select id="protocolDoseUnit"><option>mg</option><option>mcg</option><option>units</option></select></label>
+      <label>Syringe units<input id="protocolUnits" type="number" min="0" step="any" placeholder="Optional; calculated when possible" /></label>
+      <label>Step guidance<input id="protocolGuidance" placeholder="Example: Monday / Wednesday / Friday" /></label>
+      <label>Schedule / notes<textarea id="protocolNotes" rows="4" placeholder="Example: Week or step details"></textarea></label>
+      <div class="dialog-actions"><button value="cancel" class="secondary">Cancel</button><button id="saveProtocolBtn" value="default" class="primary">Save</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="vialDialog">
+    <form method="dialog" id="vialForm">
+      <h3>Track a Vial</h3>
+      <input type="hidden" id="vialId" />
+      <label>Name<input id="vialName" required list="libraryNames" placeholder="Item name" /></label>
+      <label>Vial amount (mg)<input id="vialAmount" type="number" min="0" step="any" required /></label>
+      <label>Liquid added (mL)<input id="vialLiquid" type="number" min="0" step="any" required /></label>
+      <label>Remaining amount (mg)<input id="vialRemaining" type="number" min="0" step="any" /></label>
+      <label>Typical dose<input id="vialTypicalDose" type="number" min="0" step="any" placeholder="Optional" /></label>
+      <label>Typical dose unit<select id="vialTypicalDoseUnit"><option value="mg">mg</option><option value="mcg">mcg</option><option value="units">syringe units</option></select></label>
+      <label>Date opened<input id="vialOpened" type="date" /></label>
+      <label>Low warning at remaining mg<input id="vialLowAt" type="number" min="0" step="any" placeholder="Optional" /></label>
+      <label>Shared by<select id="vialShared"><option>Beast & Beauty</option><option>Beast</option><option>Beauty</option></select></label>
+      <label>Adjustment amount (mg)<input id="vialAdjustment" type="number" step="any" placeholder="Optional: + adds, − subtracts" /></label>
+      <div id="vialPreview" class="inline-preview">Inventory preview will appear here.</div>
+      <label>Notes<textarea id="vialNotes" rows="3"></textarea></label>
+      <div class="dialog-actions"><button value="cancel" class="secondary">Cancel</button><button id="saveVialBtn" value="default" class="primary">Save</button></div>
+    </form>
+  </dialog>
+
+
+
+  <dialog id="scheduleDialog">
+    <form method="dialog" id="scheduleForm">
+      <h3>Build Protocol Schedule</h3>
+      <label>Profile<select id="scheduleProfile"><option>Beast</option><option>Beauty</option></select></label>
+      <label>Protocol<select id="scheduleProtocol"></select></label>
+      <label>Start date<input id="scheduleStartDate" type="date" /></label>
+      <label>Default time<input id="scheduleTime" type="time" value="08:00" /></label>
+      <label>Frequency
+        <select id="scheduleFrequency">
+          <option value="weekly">Weekly</option>
+          <option value="daily">Daily</option>
+          <option value="mwf">Monday / Wednesday / Friday</option>
+          <option value="twice-daily">Twice daily</option>
+        </select>
+      </label>
+      <label>Number of reminders<input id="scheduleCount" type="number" min="1" max="60" value="8" /></label>
+      <div class="card notice">
+        <p>This creates editable reminders from your saved personal protocol. It does not change the protocol itself.</p>
+      </div>
+      <div class="dialog-actions"><button value="cancel" class="secondary">Cancel</button><button id="createScheduleBtn" value="default" class="primary">Create reminders</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="onboardingDialog" class="onboarding-dialog">
+    <form method="dialog" id="onboardingForm">
+      <div class="onboarding-step active" data-step="0">
+        <span class="eyebrow">WELCOME</span>
+        <h2>Beauty & Beast Wellness</h2>
+        <p>This quick setup chooses the default profile and prepares the private dashboard on this device.</p>
+      </div>
+      <div class="onboarding-step" data-step="1">
+        <span class="eyebrow">DEFAULT PROFILE</span>
+        <h2>Who usually opens this device?</h2>
+        <div class="profile-choice">
+          <button type="button" class="choice-card active" data-onboarding-profile="Beast">Beast</button>
+          <button type="button" class="choice-card" data-onboarding-profile="Beauty">Beauty</button>
+        </div>
+      </div>
+      <div class="onboarding-step" data-step="2">
+        <span class="eyebrow">READY</span>
+        <h2>Your dashboard is set</h2>
+        <p>You can change profiles any time. Your calculations, vials, protocols, reminders, and activity remain stored only on this device unless you export a backup.</p>
+      </div>
+      <div class="dialog-actions onboarding-actions">
+        <button type="button" id="onboardingBack" class="secondary hidden">Back</button>
+        <button type="button" id="onboardingNext" class="primary">Continue</button>
+      </div>
+    </form>
+  </dialog>
+
+  <datalist id="libraryNames"></datalist>
+
+  <section id="printProtocolSummary" class="print-only">
+    <h1>Beauty & Beast Wellness — Protocol Summary</h1>
+    <p id="printGeneratedDate"></p>
+    <div id="printProtocolContent"></div>
+  </section>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#d6b84a"/><stop offset="1" stop-color="#8b6d18"/></linearGradient></defs>
+<rect width="512" height="512" rx="110" fill="#111827"/>
+<circle cx="256" cy="276" r="142" fill="none" stroke="url(#g)" stroke-width="18"/>
+<path d="M174 180l28-74 54 48 54-48 28 74-39-13-43 29-43-29z" fill="url(#g)"/>
+<path d="M165 280c23-68 66-103 91-103s68 35 91 103c-26-16-52-19-72-7l-19 12-19-12c-20-12-46-9-72 7z" fill="#e5e7eb"/>
+<path d="M190 301c18 7 32 22 39 42 9-13 18-20 27-20s18 7 27 20c7-20 21-35 39-42-6 57-32 98-66 98s-60-41-66-98z" fill="#c5cbd3"/>
+<circle cx="219" cy="267" r="8" fill="#111827"/><circle cx="293" cy="267" r="8" fill="#111827"/>
+<path d="M238 304h36l-18 18z" fill="#111827"/>
+<text x="256" y="470" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="38" fill="#d6b84a">B&amp;B</text>
+</svg>
